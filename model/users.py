@@ -5,6 +5,8 @@ import os, base64
 import json
 
 from __init__ import app, db
+
+
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -202,11 +204,11 @@ def initUsers():
     """Create database and tables"""
     db.create_all()
     """Tester data for table"""
-    u1 = User(name='Thomas Edison', uid='toby', password='123toby', dob=date(1847, 2, 11))
-    u2 = User(name='Nicholas Tesla', uid='niko', password='123niko')
-    u3 = User(name='Alexander Graham Bell', uid='lex', password='123lex')
-    u4 = User(name='Eli Whitney', uid='whit', password='123whit')
-    u5 = User(name='John Mortensen', uid='jm1021', dob=date(1959, 10, 21))
+    u1 = User(name='bob johnson', uid='bob', password='123bobington', dob=date(1923, 4, 9))
+    u2 = User(name='bobby johnson', uid='bojohn', password='wowbob', dob=date(2000, 3, 12))
+    u3 = User(name='sabine sommers', uid='sabine', password='ilovecsp', dob=date(2006, 8, 7))
+    u4 = User(name='alyssa ringler', uid='aringler', password='cspn2fan')
+    u5 = User(name='mort', uid='morty', dob=date(1959, 10, 21))
 
     users = [u1, u2, u3, u4, u5]
 
