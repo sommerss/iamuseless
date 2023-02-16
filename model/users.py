@@ -16,10 +16,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # Define the Post class to manage actions in 'posts' table,  with a relationship to 'users' table
 class Post(db.Model):
     __tablename__ = 'posts'
-
     # Define the Notes schema
     id = db.Column(db.Integer, primary_key=True)
-    note = db.Column(db.Text, unique=False, nullable=False)
+    
     image = db.Column(db.String, unique=False)
     # Define a relationship in Notes Schema to userID who originates the note, many-to-one (many notes to one user)
     userID = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -27,13 +26,12 @@ class Post(db.Model):
     # Constructor of a Notes object, initializes of instance variables within object
     def __init__(self, id, note, image):
         self.userID = id
-        self.note = note
+        
         self.image = image
 
     # Returns a string representation of the Notes object, similar to java toString()
     # returns string
-    def __repr__(self):
-        return "Notes(" + str(self.id) + "," + self.note + "," + str(self.userID) + ")"
+    
 
     # CRUD create, adds a new record to the Notes table
     # returns the object added or None in case of an error
@@ -55,14 +53,13 @@ class Post(db.Model):
         file = os.path.join(path, self.image)
         file_text = open(file, 'rb')
         file_read = file_text.read()
-        file_encode = base64.encodebytes(file_read)
+     
         
         return {
             "id": self.id,
             "userID": self.userID,
-            "note": self.note,
             "image": self.image,
-            "base64": str(file_encode)
+            
         }
 
 
@@ -78,18 +75,17 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     _name = db.Column(db.String(255), unique=False, nullable=False)
     _uid = db.Column(db.String(255), unique=True, nullable=False)
-    _password = db.Column(db.String(255), unique=False, nullable=False)
-    _dob = db.Column(db.Date)
-
+    _snakescore = db.Column(db.String(255), unique=False, nullable=False)
     # Defines a relationship between User record and Notes table, one-to-many (one user to many notes)
     posts = db.relationship("Post", cascade='all, delete', backref='users', lazy=True)
 
     # constructor of a User object, initializes the instance variables within object (self)
-    def __init__(self, name, uid, password="123qwerty", dob=date.today()):
+    def __init__(self, name, uid, snakescore):
         self._name = name    # variables with self prefix become part of the object, 
         self._uid = uid
-        self.set_password(password)
-        self._dob = dob
+        self._snakescore = snakescore
+        
+        
 
     # a name getter method, extracts name from object
     @property
@@ -115,36 +111,22 @@ class User(db.Model):
     def is_uid(self, uid):
         return self._uid == uid
     
-    @property
-    def password(self):
-        return self._password[0:10] + "..." # because of security only show 1st characters
 
-    # update password, this is conventional setter
-    def set_password(self, password):
-        """Create a hashed password."""
-        self._password = generate_password_hash(password, method='sha256')
-
-    # check password parameter versus stored/encrypted password
-    def is_password(self, password):
-        """Check against hashed password."""
-        result = check_password_hash(self._password, password)
-        return result
+    
     
     # dob property is returned as string, to avoid unfriendly outcomes
     @property
-    def dob(self):
-        dob_string = self._dob.strftime('%m-%d-%Y')
-        return dob_string
+    def snakescore(self):
+        return self._snakescore
     
-    # dob should be have verification for type date
-    @dob.setter
-    def dob(self, dob):
-        self._dob = dob
+    # a setter function, allows name to be updated after initial object creation
+    @snakescore.setter
+    def snakescore(self, snakescore):
+        self._snakescore = snakescore
+
+
+
     
-    @property
-    def age(self):
-        today = date.today()
-        return today.year - self._dob.year - ((today.month, today.day) < (self._dob.month, self._dob.day))
     
     # output content using str(object) in human readable form, uses getter
     # output content using json dumps, this is ready for API response
@@ -170,21 +152,23 @@ class User(db.Model):
             "id": self.id,
             "name": self.name,
             "uid": self.uid,
-            "dob": self.dob,
-            "age": self.age,
-            "posts": [post.read() for post in self.posts]
+            
+            "snakescore": self.snakescore
+            
+           
         }
 
     # CRUD update: updates user name, password, phone
     # returns self
-    def update(self, name="", uid="", password=""):
+    def update(self, name="", uid="", snakescore=""):
         """only updates values with length"""
         if len(name) > 0:
             self.name = name
         if len(uid) > 0:
             self.uid = uid
-        if len(password) > 0:
-            self.set_password(password)
+        if len(snakescore) > 0:
+            self.snakescore = snakescore
+        
         db.session.commit()
         return self
 
@@ -201,28 +185,26 @@ class User(db.Model):
 
 # Builds working data for testing
 def initUsers():
-    """Create database and tables"""
-    db.create_all()
-    """Tester data for table"""
-    u1 = User(name='bob johnson', uid='bob', password='123bobington', dob=date(1923, 4, 9))
-    u2 = User(name='bobby johnson', uid='bojohn', password='wowbob', dob=date(2000, 3, 12))
-    u3 = User(name='sabine sommers', uid='sabine', password='ilovecsp', dob=date(2006, 8, 7))
-    u4 = User(name='alyssa ringler', uid='aringler', password='cspn2fan')
-    u5 = User(name='mort', uid='morty', dob=date(1959, 10, 21))
+     with app.app_context():
+         """Create database and tables"""
+         db.init_app(app)
+         db.create_all()
+         """Tester data for table"""
+         u1 = User(name='Thomas Edison', uid='toby', snakescore = 1)
+       
 
-    users = [u1, u2, u3, u4, u5]
+         users = [u1]
 
-    """Builds sample user/note(s) data"""
-    for user in users:
-        try:
-            '''add a few 1 to 4 notes per user'''
-            for num in range(randrange(1, 4)):
-                note = "#### " + user.name + " note " + str(num) + ". \n Generated by test data."
-                user.posts.append(Post(id=user.id, note=note, image='ncs_logo.png'))
-            '''add user/post data to table'''
-            user.create()
-        except IntegrityError:
-            '''fails with bad or duplicate data'''
-            db.session.remove()
-            print(f"Records exist, duplicate email, or error: {user.uid}")
-            
+         """Builds sample user/note(s) data"""
+         for user in users:
+             try:
+                 '''add a few 1 to 4 notes per user'''
+                 for num in range(randrange(1, 4)):
+                     note = "#### " + user.name + " note " + str(num) + ". \n Generated by test data."
+                     user.posts.append(Post(id=user.id, image='ncs_logo.png'))
+                 '''add user/post data to table'''
+                 user.create()
+             except IntegrityError:
+                 '''fails with bad or duplicate data'''
+                 db.session.remove()
+                 print(f"Records exist, duplicate email, or error: {user.uid}")

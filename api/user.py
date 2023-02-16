@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_restful import Api, Resource # used for REST API building
-from datetime import datetime
+
 
 from model.users import User
 
@@ -26,8 +26,10 @@ class UserAPI:
             if uid is None or len(uid) < 2:
                 return {'message': f'User ID is missing, or is less than 2 characters'}, 210
             # look for password and dob
-            password = body.get('password')
-            dob = body.get('dob')
+            snakescore = body.get('snakescore')
+            if snakescore is None:
+                return {'message': f'you have never played this game!'}, 210
+            
 
             ''' #1: Key code block, setup USER OBJECT '''
             uo = User(name=name, 
@@ -35,14 +37,7 @@ class UserAPI:
             
             ''' Additional garbage error checking '''
             # set password if provided
-            if password is not None:
-                uo.set_password(password)
-            # convert to date type
-            if dob is not None:
-                try:
-                    uo.dob = datetime.strptime(dob, '%m-%d-%Y').date()
-                except:
-                    return {'message': f'Date of birth format error {dob}, must be mm-dd-yyyy'}, 210
+        
             
             ''' #2: Key Code block to add user to database '''
             # create user in database
