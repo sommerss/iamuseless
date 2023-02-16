@@ -33,7 +33,8 @@ class UserAPI:
 
             ''' #1: Key code block, setup USER OBJECT '''
             uo = User(name=name, 
-                      uid=uid)
+                      uid=uid,
+                      snakescore=snakescore)
             
             ''' Additional garbage error checking '''
             # set password if provided
